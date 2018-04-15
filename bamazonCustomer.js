@@ -22,12 +22,8 @@ connection.connect(function(err) {
 
   // are we hooked up
   console.log("connected as id " + connection.threadId);
-  showItems();
-  connection.end();
-});
-
-// write the function to show all the items
-function showItems() {
+  console.log("\n===============================================\n");
+  
   connection.query("SELECT * FROM products", function (err, res) {
     
     // create the table
@@ -41,5 +37,40 @@ function showItems() {
     });
     // display the table
     console.log(table.toString());
+    console.log("\n===============================================\n");
+    // display the questions
+    prompt();
+    
   });
+});
+
+function prompt() {
+  inquirer
+    .prompt([
+      {
+        name: "whatID",
+        type: "input",
+        message: "what is the ID of the item you'd like to purchase?",
+        validate: function (value) {
+          if (isNaN(value)===false) {
+            return true;
+          }
+          return false;
+        }
+      },
+      {
+        name: "howMany",
+        type: "input",
+        message: "how many units do you want to buy",
+        validate: function (value) {
+          if (isNaN(value)===false) {
+            return true;
+          }
+          return false;
+        }
+      }
+    ])
+    .then(function (answer) {
+      console.log(answer);
+    })
 }
