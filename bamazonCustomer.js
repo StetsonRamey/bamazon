@@ -21,6 +21,10 @@ connection.connect(function(err) {
 
   // are we hooked up
   console.log('connected as id ' + connection.threadId);
+  buildTable();
+});
+
+function buildTable() {
   console.log('\n===============================================\n');
 
   connection.query('SELECT * FROM products', function(err, res) {
@@ -43,35 +47,89 @@ connection.connect(function(err) {
     // display the questions
     prompt();
   });
-});
+}
 
 function prompt() {
-  inquirer
-    .prompt([
-      {
-        name: 'whatID',
-        type: 'input',
-        message: "what is the ID of the item you'd like to purchase?",
-        validate: function(value) {
-          if (isNaN(value) === false) {
-            return true;
+  // hit the database
+  connection.query('SELECT * FROM products', function(err, res) {
+    if (err) throw err;
+
+    inquirer
+      .prompt([
+        {
+          name: 'whatID',
+          type: 'input',
+          message: "what is the ID of the item you'd like to purchase?",
+          validate: function(value) {
+            if (isNaN(value) === false) {
+              return true;
+            }
+            return false;
           }
-          return false;
-        }
-      },
-      {
-        name: 'howMany',
-        type: 'input',
-        message: 'how many units do you want to buy',
-        validate: function(value) {
-          if (isNaN(value) === false) {
-            return true;
+        },
+        {
+          name: 'howMany',
+          type: 'input',
+          message: 'how many units do you want to buy',
+          validate: function(value) {
+            if (isNaN(value) === false) {
+              return true;
+            }
+            return false;
           }
-          return false;
         }
-      }
-    ])
-    .then(function(answer) {
-      console.log(answer);
-    });
+      ])
+      .then(function(answer) {
+        // get the chosen item
+        var chosenItem;
+        res.forEach(element => {
+          if (element.item_id === parseInt(answer.whatID)) {
+            chosenItem = element;
+          }
+        });
+        if (chosenItem.stock_quantity < answer.howMany) {
+          console.log("\nInsufficient quantity!  We can't complete your order");
+          console.log('===============================================\n');
+          prompt();
+        } else {
+          var stock_quantityUpdated =
+            chosenItem.stock_quantity - answer.howMany;
+          var subTotal = answer.howMany * chosenItem.price;
+
+          var update = connection.query(
+            'UPDATE products SET ? WHERE ?',
+            [
+              {
+                stock_quantity: stock_quantityUpdated
+              },
+              {
+                item_id: chosenItem.item_id
+              }
+            ],
+            function(err, res) {
+              console.log(res.affectedRows + " we've updated the stock");
+              console.log('Subtotal: $' + subTotal);
+
+              inquirer
+                .prompt([
+                  {
+                    name: "buyAgain",
+                    type: "confirm",
+                    message: "Would you like to buy something else?",
+                    default: true
+                  }
+                ])
+                .then(answers => {
+                  if (answers.buyAgain) {
+                    buildTable();
+                  }
+                  else {
+                    connection.end();
+                  }
+                });
+            }
+          );
+        }
+      });
+  });
 }
