@@ -49,9 +49,11 @@ function manageShit() {
           break;
 
         case 'Add to Inventory':
+          addInventory();
           break;
 
         case 'Add New Product':
+          addProduct();
           break;
       }
     });
@@ -77,8 +79,6 @@ function viewProducts() {
     // display the table
     console.log(table.toString());
     console.log('\n===============================================\n');
-
-    manageShit();
   });
 }
 
@@ -90,9 +90,6 @@ function viewLowInventory() {
     var lowInventory = new Table({
       head: ['Item ID', 'Product Name', 'Department', 'Price', 'Stock']
     });
-    // console.log(res);
-    // console.log(res.stock_quantity);
-
     res.forEach(element => {
       if (element.stock_quantity < 5) {
         lowInventory.push([
@@ -104,10 +101,89 @@ function viewLowInventory() {
         ]);
       }
     });
-
     // display the table
     console.log(lowInventory.toString());
     console.log('\n===============================================\n');
-    manageShit();
   });
+}
+
+function addInventory() {
+  viewLowInventory();
+
+  connection.query('SELECT * FROM products', function(err, res) {
+    if (err) throw err;
+
+    inquirer
+      .prompt([
+        {
+          name: 'whatID',
+          type: 'input',
+          message: "what is the ID of the item you'd like to add quantity for?",
+          validate: function(value) {
+            if (isNaN(value) === false) {
+              return true;
+            }
+            return false;
+          }
+        },
+        {
+          name: 'howMany',
+          type: 'input',
+          message: 'how many units do you want to add',
+          validate: function(value) {
+            if (isNaN(value) === false) {
+              return true;
+            }
+            return false;
+          }
+        }
+      ])
+      .then(function(answer) {
+        var updateItem;
+        res.forEach(element => {
+          if (element.item_id === parseInt(answer.whatID)) {
+            updateItem = element;
+          }
+        });
+        var updatedStock =
+          parseInt(updateItem.stock_quantity) + parseInt(answer.howMany);
+
+        var updatedStock = connection.query(
+          'UPDATE products SET ? WHERE ?',
+          [
+            {
+              stock_quantity: updatedStock
+            },
+            {
+              item_id: updateItem.item_id
+            }
+          ],
+          function(err, res) {
+            console.log("\n!!!!!!!!!!!!STOCK UPDATED!!!!!!!!!!!!");
+            viewProducts();
+          }
+        );
+      });
+  });
+}
+
+function addProduct() {}
+
+function runAgain() {
+  inquirer
+    .prompt([
+      {
+        name: 'runAgain',
+        type: 'confirm',
+        message: 'Would you like to run again?',
+        default: true
+      }
+    ])
+    .then(answers => {
+      if (answers.runAgain) {
+        manageShit();
+      } else {
+        connection.end();
+      }
+    });
 }
