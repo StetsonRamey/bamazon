@@ -113,17 +113,16 @@ function prompt() {
               inquirer
                 .prompt([
                   {
-                    name: "buyAgain",
-                    type: "confirm",
-                    message: "Would you like to buy something else?",
+                    name: 'buyAgain',
+                    type: 'confirm',
+                    message: 'Would you like to buy something else?',
                     default: true
                   }
                 ])
                 .then(answers => {
                   if (answers.buyAgain) {
                     buildTable();
-                  }
-                  else {
+                  } else {
                     connection.end();
                   }
                 });
