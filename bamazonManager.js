@@ -159,7 +159,7 @@ function addInventory() {
             }
           ],
           function(err, res) {
-            console.log("\n!!!!!!!!!!!!STOCK UPDATED!!!!!!!!!!!!");
+            console.log('\n!!!!!!!!!!!!STOCK UPDATED!!!!!!!!!!!!');
             viewProducts();
           }
         );
@@ -167,7 +167,12 @@ function addInventory() {
   });
 }
 
-function addProduct() {}
+function addProduct() {
+  console.log("=====================================\n");
+  console.log("GOTTA WRITE");
+  console.log("\n=====================================");
+  
+}
 
 function runAgain() {
   inquirer
