@@ -79,6 +79,7 @@ function viewProducts() {
     // display the table
     console.log(table.toString());
     console.log('\n===============================================\n');
+    manageShit();
   });
 }
 
@@ -104,6 +105,7 @@ function viewLowInventory() {
     // display the table
     console.log(lowInventory.toString());
     console.log('\n===============================================\n');
+    manageShit();
   });
 }
 
